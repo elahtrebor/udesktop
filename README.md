@@ -5,6 +5,10 @@ This is a remote desktop capable of spawning mutiple Terminal shells, File Brows
 using an HTML/Javascript front end and a micro python back end server.
 The windows support drag and drop, minimize, resize. 
 
+![udesktop.png](https://raw.github.com/elahtrebor/udesktop/main/udesktop.png)
+
+
+
 This works by letting Javascript and HTML peform the heavy lifting 
 in your web browser while making low levels calls to the python server to
 handle the file system manipulation. For instance when a terminal is spawned,
