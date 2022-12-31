@@ -30,7 +30,7 @@ Tested on ESP32/ ESP8266 and RPI Pico W.
 <pre>
 
 Installation:
- Ensure your microcontroller already has an IP address to use. 
+ Ensure your microcontroller already has micropython and has an IP address. 
  Copy udesktop.py to your microcontroller. 
  Then start the script by "import udesktop" or defining as main.py
  Copy the udesktop.html to your computer, launch in web browser 
