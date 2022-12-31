@@ -28,3 +28,14 @@ Tested on ESP32/ ESP8266 and RPI Pico W.
 </pre>
 
 
+Installation:
+ Ensure your microcontroller already has an IP address to use. 
+ Copy udesktop.py to your microcontroller. 
+ Then start the script by "import udesktop" or defining as main.py
+ Copy the udesktop.html to your computer, launch in web browser 
+ Select the settings from the Dropdown Menu and data fill the
+  ip address of your microcontroller.
+  
+  Work in progress but works well in tandem with webrepl.
+  
+ 
