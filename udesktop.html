@@ -1,0 +1,499 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+<!--------------------- MAP STYLE --------------------------------------------------->
+<style>
+#map1 {
+ height: 600px;
+ width: 720px;
+}
+#menu1 {
+ background-color: lightgrey;
+ width: auto;
+ height: auto;
+ box-shadow: 1px 1px; 
+}
+startButton{
+ 
+}
+.terminalObj{
+ overflow: auto;  
+ background-color: gray;
+
+ box-shadow: 3px 3px;
+}
+
+.editorObj{
+ overflow: auto;  
+ background-color: gray;
+
+ box-shadow: 3px 3px;
+}
+
+.settingsObj{
+ background-color: lightgray;
+ width: 400px;
+ height: 400px;
+ border = 1px;
+// position: absolute; 
+  //z-index: 1000; left: 388.5px; top: 172px;
+ box-shadow: 3px 3px;
+}
+
+.browserObj{
+ background-color: lightgray;
+ width: 400px;
+ height: 400px;
+ border = 1px;
+// position: absolute; 
+  //z-index: 1000; left: 388.5px; top: 172px;
+ box-shadow: 3px 3px;
+}
+
+.windowLabel{
+ background-color: gray;
+ display: block;
+ overflow: auto; 
+}
+
+#theClock{
+ background-color: lightgrey;
+ border: none;
+}
+// -----------------  BEGIN DROPDOWN CSS  --------------
+
+
+.dropbtn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+    box-shadow: 2px 2px;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown:hover .dropbtn {
+    background-color: darkGray; 
+}
+
+
+</style>
+
+
+<!--------------------- JAVASCRIPT CLONE CODE --------------------------------------->
+<script>
+
+OBJID = 0
+IPADDRESS = "192.168.50.114"
+RESPONSE = ""
+var minimized = {}
+
+
+
+function getid(id){
+ return document.getElementById(id)
+}
+
+function toggleDisplay(id) {
+  x = getid(id)
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+
+function postRequest(url){
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (xhttp.readyState == 4 && xhttp.status == 200) {
+             RESPONSE =  xhttp.responseText;     
+          }
+       };
+       xhttp.open("POST",url , true);
+       xhttp.send();
+}
+
+function destroyObj(id){
+ getid(id).remove()
+ getid("button_" + id).remove()
+}
+
+function minimizeWindow(id){
+   windowObj = getid(id)
+   windowObj.style="display: none;"
+// Determine what child class it is
+   objtype = windowObj.firstElementChild.className   
+   if(minimized[id] == undefined){ 
+   appMin = "<button id=\"button_" + id + "\" onclick=\"toggleDisplay(" + id + ")\">__OBJTYPE__</button>" 
+   objtype = objtype.replace("Obj","").substring(0,4)
+   appMin = appMin.replace("__OBJTYPE__", objtype)
+   getid("menuBar").innerHTML+= appMin; 
+   minimized[id] = 1;
+   }
+       
+}
+
+//------------------------ TERMINAL HANDLING ----------------------------
+
+function parseInput(objid) {
+    var key = window.event.keyCode;
+
+    // If the user has pressed enter split the text area 
+    if (key == 13) {
+        var lines = getid(objid).value.split('\n');
+        var x = lines.length - 1;
+        var native = 0;
+       if(lines[x] == "clear"){
+          native = 1;
+          getid(objid).value = "";
+         }
+       
+       if(lines[x].search(/[\S]+/)!= -1 && native == 0){
+
+     // If we have valid input then send it
+    var destlink = "http://" + IPADDRESS + "/cmd=";
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+     if (xhttp.readyState == 4 && xhttp.status == 200) {
+       getid(objid).value += xhttp.responseText + "\n";
+   getid(objid).scrollTop = getid(objid).scrollHeight; 
+     }
+  };
+  xhttp.open("POST", destlink + lines[x], true);
+  xhttp.send();
+
+         //alert(lines[x]);
+              }
+    }
+}
+//   END CODE FOR TERMINAL HANDLING
+
+
+
+function getFolder(dir, objid){
+      fragments = dir.split('/')
+      fragments.splice(-1, 1)
+      PREVDIR = fragments.join("/")  
+           fsvg = getid('folder-svg')
+           var folderClone = fsvg.cloneNode(true); 
+           folderClone.style.display = "inline" 
+
+           flsvg = getid('file-svg')
+           var fileClone = flsvg.cloneNode(true); 
+           fileClone.style.display = "inline" 
+
+      output = ""
+      if(dir == "/"){ 
+        output = ""
+        sep = ""
+       } 
+      else {     
+       output = folderClone.outerHTML  + "&nbsp;&nbsp;<a href='#' onclick=\"getFolder('" + PREVDIR + "','" + objid + "')\">" + ".." + "</a><br>"
+        sep = "/"
+        }
+       link = "http://" + IPADDRESS + "/fileobject=getDirectory&filepath=" + dir
+ 
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+     if (xhttp.readyState == 4 && xhttp.status == 200) {
+       fresp = xhttp.responseText;
+       fdetails = fresp.split('\n')
+       for (var i = 0; i < fdetails.length; i++){
+           if(!(fdetails[i].match(/\S+/))){ continue }
+            [fname, ftype, fsize] = fdetails[i].split(',')
+
+            
+            if(ftype === "folder"){ 
+             output +=  folderClone.outerHTML + "&nbsp;&nbsp;<a href='#' onclick=\"getFolder('" + 
+                dir + sep + fname + "', '" + 
+                objid + "')\">"+ fname + " </a><br>" 
+            }
+            else{
+             output +=  fileClone.outerHTML + "&nbsp;&nbsp;<a href='#' onclick=\"getFile('" + dir + sep + fname +
+             "','" + objid +  "')\">"+ fname + "</a></br> " 
+            } 
+          } 
+             output +="</table>"
+       getid("browserTable" + objid).innerHTML = output
+     }
+  };
+
+  xhttp.open("POST", link , true);
+  xhttp.send();
+
+
+}
+
+
+function getFile(fname){
+ alert(fname);
+
+}
+//  OBJECT CREATION
+
+function cloneObj(objType) {
+  var elmnt = getid("dragObj");
+  var widgetType = objType;
+         OBJID++;
+// ---------------------  CLONE TERMINAL HTML --------------------------------
+	if(widgetType === "terminal") { 
+
+	 output = ` 
+   <div id ="__OBJID__" class="terminalObj" >
+     <label><b>&emsp;&emsp;Terminal</b></label> 
+     <button style="float: right;" onclick="destroyObj(__OBJID__)">x</button>
+     <button style="float: right;" onclick="minimizeWindow(__OBJID__)">_</button><br> 
+     <textarea id="term__OBJID__" class="terminalText" rows=20 cols=87 onkeypress="parseInput('term__OBJID__')" >
+     </textarea><br> 
+    </div>`
+	}
+ //---------------------- EDITOR HTML ------------------------------
+	if(widgetType === "editor") { 
+	 output = `
+<div id="__OBJID__" class="editorObj"> 
+<label  style="background-color: grey;"><b>&emsp;&emsp;Editor</b> 
+<button style="float: right;" onclick="destroyObj(__OBJID__)">x</button>
+<button style="float: right" onclick="minimizeWindow(__OBJID__)">_</button><br> 
+</label>
+<textarea id="textEditor__OBJID__" style="float: right; box-shadow: 4px 4px;" rows=20 cols=80 onkeypress="parseInput()" >
+</textarea><br> 
+<button onclick="loadText('textEditor__OBJID__')">load</button>
+<button onclick="saveText('textEditor__OBJID__')">save</button><input id="filepath__OBJID__" placeholder="/path/filename" />
+</div>
+`
+	}
+// --------------------- SETTINGS HTML ----------------------------
+	if(widgetType === "settings") { 
+	 output = `
+<div id="__OBJID__" class="settingsObj" >
+<label class="windowLabel"><b>&emsp;&emsp;Settings</b>
+<button style="float: right;" onclick="destroyObj(__OBJID__)">x</button>
+<label style="float: right" ></label></label>
+<label><b>IP address: </b></label><input id="settingsIp"></input><button onclick="setIp()">set</button><button onclick="getIp()">get</button><br>  
+<label><b>Desktop Color: </b></label><input type="color" onchange="document.body.style.background = this.value;" value = "#c0c0c0"></input>
+</div>
+`
+
+	}
+// --------------------- Browser HTML ----------------------------
+   RESPONSE = ""
+	if(widgetType === "browser") { 
+// The file browser needs to make a call to get files
+// in order to poplulate the browser tree
+
+	 output = `
+<div id="__OBJID__" class="browserObj" >
+<label class="windowLabel"><b>&emsp;&emsp;Browser</b>
+<button style="float: right;" onclick="destroyObj(__OBJID__)">x</button>
+<label style="float: right" ></label></label>
+<div id = "browserTable__OBJID__">
+<a href="#" onclick="getFolder('/', '__OBJID__')">/root</a>
+
+</div>
+<br></br>
+</div>
+`
+
+
+	}
+
+
+    output = output.replaceAll("__OBJID__", OBJID)
+    output = output.replaceAll("__OBJTYPE__", objType)
+
+  elmnt.innerHTML =  output;
+  var cln = elmnt.cloneNode(true);
+
+  cln.id = OBJID;
+ // document.body.appendChild(cln);
+  document.getElementById("map1").appendChild(cln);
+  elmnt.innerHTML = "";
+  
+  Drag(cln);
+}
+
+function saveText(textid){
+   var objid = textid.replace("textEditor", "")
+   var fname = getid("filepath" + objid).value
+   var textdata = getid("textEditor" + objid).value
+ let encData = encodeURI(textdata);
+ var destlink = "http://" + IPADDRESS + "/fileobject="; 
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (xhttp.readyState == 4 && xhttp.status == 200) {
+           alert("File saved.")
+          }
+       };
+       xhttp.open("POST", destlink + fname + "&filecontents=" +  encData, true);
+       xhttp.send();
+
+}
+function loadText(textid){
+   var objid = textid.replace("textEditor", "")
+   var fname = getid("filepath" + objid).value
+   var textdata = getid("textEditor" + objid)
+ var destlink = "http://" + IPADDRESS + "/getFile=";
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+         if (xhttp.readyState == 4 && xhttp.status == 200) {
+         getid("textEditor" + objid).value += xhttp.responseText + "\n";
+         getid("textEditor" + objid).scrollTop = getid("textEditor" + objid).scrollHeight;
+     }
+  };
+
+       xhttp.open("POST", destlink + fname , true);
+       xhttp.send();
+
+}
+
+</script>
+</head>
+
+<body style="height: 200px" bgcolor="#14257B">
+<script>
+// ----------------------------- Drag Functions ------------------------------------------
+
+function getid(id){
+ return document.getElementById(id)
+}
+
+function Drag(dragObj){ 
+  // Attach event listener to mousedown as we are dragging
+      dragObj.onmousedown = function(event) {
+      dragObj.style.position = 'absolute';
+      dragObj.style.zIndex = 1000;
+      document.body.appendChild(dragObj);
+      moveAt(event.pageX, event.pageY);
+      
+//  Move the coordinates while still mouse down
+      function moveAt(pageX, pageY) {
+        dragObj.style.left = pageX - dragObj.offsetWidth / 2 + 'px';
+        dragObj.style.top = pageY - dragObj.offsetHeight / 2 + 'px';
+      }
+
+      function onMouseMove(event) {
+        moveAt(event.pageX, event.pageY);
+      }
+
+      document.addEventListener('mousemove', onMouseMove);
+// Drop as remove the event listener.
+        dragObj.onmouseup = function() {
+        document.removeEventListener('mousemove', onMouseMove);
+        dragObj.onmouseup = null;
+        dragObj.onmousedown="event.preventDefault"        
+      };    
+    };
+ dragObj.ondragstart = function() {
+       return false;
+       };
+     
+
+}
+
+
+
+
+
+
+</script>
+
+
+<!------------------------ LEFT PANE MENU ----------------------------------->
+ <div id="menu1"  > 
+ <div class="dropdown">
+    <button class="dropbtn" width=20 height=20 /><b style="font-size: 20px;color: blue;">&#10148;</b></button>
+   <div class="dropdown-content">
+    <a href="#" onclick="cloneObj('terminal')">Terminal</a>
+    <a href="#" onclick="cloneObj('editor')">Text Editor</a>
+    <a href="#" onclick="cloneObj('browser')">File Browser</a>
+    <a href="#" onclick="cloneObj('settings')">Settings</a>
+    <a href="#" onclick='window.open("https://docs.micropython.org/en/latest/", "_blank")'>MicroPython Manual</a>
+  </div>
+ </div>
+<button style="float: right;" id="theClock"></button>
+<div id="menuBar" width= "100%" style="display: inline"></div>
+</div>
+<div id="dragObj" ondblclick="Drag(this)"> </div>
+
+
+<!------------------------ DESKTOP AREA   ------------------------------------------->
+<div id="map1" style="float: left;">
+<svg width="20px" height="20px" viewBox="0 -1 22 22" id="folder-svg" display="none" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.39445 0C8.7288 0 9.041 0.1671 9.2265 0.4453L10.6328 2.5547C10.8182 2.8329 11.1305 3 11.4648 3H20C21.1046 3 22 3.89543 22 5V18C22 19.1046 21.1046 20 20 20H2C0.89543 20 0 19.1046 0 18L0 2C0 0.89543 0.89543 0 2 0L8.39445 0z" fill="#758CA3"/></svg>
+
+<svg width="20px" height="20px" viewBox="-3 0 24 24" id="file-svg" display = "none" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 7V21C2 21.5523 2.44772 22 3 22H15C15.5523 22 16 21.5523 16 21V3C16 2.44772 15.5523 2 15 2H7V6C7 6.55228 6.55228 7 6 7H2zM2.12602 5H5V2.12602C3.59439 2.4878 2.4878 3.59439 2.12602 5zM15 0C16.6569 0 18 1.34315 18 3V21C18 22.6569 16.6569 24 15 24H3C1.34315 24 0 22.6569 0 21V6C0 2.68629 2.68629 0 6 0H15zM5 11C4.44772 11 4 10.5523 4 10C4 9.44771 4.44772 9 5 9H13C13.5523 9 14 9.44771 14 10C14 10.5523 13.5523 11 13 11H5zM5 15C4.44772 15 4 14.5523 4 14C4 13.4477 4.44772 13 5 13H13C13.5523 13 14 13.4477 14 14C14 14.5523 13.5523 15 13 15H5zM5 19C4.44772 19 4 18.5523 4 18C4 17.4477 4.44772 17 5 17H13C13.5523 17 14 17.4477 14 18C14 18.5523 13.5523 19 13 19H5z" fill="#758CA3"/></svg>
+</div>
+</body>
+<script>
+
+<!------------------------- The Clock ------------------------------------------------>
+//-------------------- THE CLOCK ----------------------------
+
+setInterval(showTime, 1000);
+function showTime() {
+    let time = new Date();
+    let hour = time.getHours();
+    let min = time.getMinutes();
+    let sec = time.getSeconds();
+    am_pm = "AM";
+ 
+    if (hour > 12) {
+        hour -= 12;
+        am_pm = "PM";
+    }
+    if (hour == 0) {
+        hr = 12;
+        am_pm = "AM";
+    }
+ 
+    hour = hour < 10 ? "0" + hour : hour;
+    min = min < 10 ? "0" + min : min;
+    sec = sec < 10 ? "0" + sec : sec;
+ 
+    let currentTime = hour + ":"
+            + min + am_pm;
+ 
+    getid("theClock").innerHTML = currentTime;
+}
+showTime();
+
+// --    settings ------
+function setIp(){
+ x = getid("settingsIp").value;
+ IPADDRESS = x
+ alert("IP ADDRESS set to " + IPADDRESS) 
+}
+
+function getIp(){
+ x = getid("settingsIp").value=IPADDRESS;
+}
+</script>
+</html>
