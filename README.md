@@ -1,14 +1,15 @@
 # udesktop
 Javascript/Micro Python Remote Desktop for ESP/RPI microcontrollers
-<p>
+<pre>
 This is a remote desktop capable of spawning mutiple Terminal shells, File Browser, and Editor.
 using an HTML/Javascript front end and a micro python back end server.
 The windows support drag and drop, minimize, resize. 
-</p>
+</pre>
+
 ![udesktop.PNG](https://raw.github.com/elahtrebor/udesktop/main/udesktop.PNG)
 
 
-<p>
+<pre>
 
 This works by letting Javascript and HTML peform the heavy lifting 
 in your web browser while making low levels calls to the python server to
@@ -25,7 +26,7 @@ Caveats:
 
 Tested on ESP32/ ESP8266 and RPI Pico W.
 
-</p>
+</pre>
 <pre>
 
 Installation:
